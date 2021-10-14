@@ -1,0 +1,105 @@
+---
+title: "Case Study"
+output: github_document
+---
+
+```{r, message= FALSE}
+library(tidyverse)
+library(p8105.datasets)
+data("nyc_airbnb")
+```
+
+Most popular and most expensive neighborhood?
+Which neighborhood has highest reviews?
+Availability related to price?
+Room type related to neighborhood?
+Is length stya related to neighborhood group?
+
+```{r}
+nyc_airbnb =
+  nyc_airbnb %>%
+  mutate(stars = review_scores_location / 2) %>%
+  rename(borough = neighbourhood_group)
+```
+
+Try to count things:
+
+```{r}
+nyc_airbnb %>%
+  janitor::tabyl(borough, room_type) %>%
+  pivot_wider(
+    names_from = room_type,
+    values_from = n
+  )
+```
+
+Is price correlated with review score?
+
+```{r}
+nyc_airbnb %>%
+  ggplot(aes(x = price, y = stars)) + geom_point() +
+  facet_grid(. ~ room_type)
+```
+
+Which neighborhood has highest reviews?
+
+```{r}
+nyc_airbnb %>%
+  janitor::tabyl(borough, stars)
+```
+
+Length of stay vs price
+
+```{r}
+nyc_airbnb %>%
+  ggplot(aes(x = price, y = minimum_nights, color = borough)) + geom_point(alpha = 0.3)
+```
+
+Price and room type
+
+```{r}
+nyc_airbnb %>%
+  ggplot(aes(x = stars, y = minimum_nights, color = borough)) + geom_point(alpha = 0.3)
+```
+
+Price and neighborhood
+
+```{r}
+nyc_airbnb %>%
+  filter(borough == "Manhattan",
+         price <= 1000) %>%
+  group_by(neighbourhood) %>%
+  summarise(mean_price = mean(price, na.rm = TRUE))
+
+nyc_airbnb %>%
+  filter(borough == "Manhattan",
+         price <= 1000) %>%
+  mutate(neighbourhood = fct_reorder(neighbourhood, price)) %>%
+  ggplot(aes(x = neighbourhood, y = price)) + 
+  geom_boxplot() +
+  coord_flip() +
+  facet_grid(. ~ room_type)
+```
+
+Price vs location
+
+```{r}
+nyc_airbnb %>%
+  filter(price < 500) %>%
+  sample_n(5000) %>%
+  ggplot(aes(x = lat, y = long, color = price)) + geom_point(alpha = 0.3) 
+```
+
+
+```{r, eval = FALSE}
+nyc_airbnb %>%
+  filter(price < 500) %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(~lat, ~long)
+```
+
+
+```{r}
+
+```
